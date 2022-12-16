@@ -44,12 +44,11 @@ class ServerSentEventsTransport implements Transport {
     // set url before accessTokenFactory because this.url is only for send and we set the auth header instead of the query string for send
     _url = url;
 
+    final headers = <String, String>{};
     if (_accessTokenFactory != null) {
-      final token = await _accessTokenFactory!();
-      if (token != null && _url != null) {
-        _url = _url! +
-            (!url!.contains('?') ? '?' : '&') +
-            'access_token=${Uri.encodeComponent(token)}';
+      var token = await _accessTokenFactory!();
+      if (token != null) {
+        headers['Authorization'] = 'Bearer $token';
       }
     }
 
@@ -65,7 +64,7 @@ class ServerSentEventsTransport implements Transport {
 
     SseClient client;
     try {
-      client = SseClient.connect(Uri.parse(url!));
+      client = SseClient.connect(Uri.parse(url!), headers);
       _log!(LogLevel.information, 'SSE connected to $_url');
       opened = true;
       _sseClient = client;
@@ -74,7 +73,7 @@ class ServerSentEventsTransport implements Transport {
       return completer.completeError(e);
     }
 
-    _sseClient!.stream!.listen((data) {
+    _sseClient!.stream.listen((data) {
       _log!(LogLevel.trace,
           '(SSE transport) data received. ${getDataDetail(data, _logMessageContent)}');
       onreceive!(data);
