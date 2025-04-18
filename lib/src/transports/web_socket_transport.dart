@@ -48,10 +48,11 @@ class WebSocketTransport implements Transport {
     _logging!(LogLevel.trace, '(WebSockets transport) Connecting.');
 
     if (_accessTokenFactory != null) {
-      final token = await _accessTokenFactory!();
+      final token = await _accessTokenFactory();
       if (token!.isNotEmpty) {
         final encodedToken = Uri.encodeComponent(token);
-        url = url! + (url.contains('?') ? '&' : '?') + 'access_token=$encodedToken';
+        url =
+            '${url!}${url.contains('?') ? '&' : '?'}access_token=$encodedToken';
       }
     }
 
@@ -62,12 +63,12 @@ class WebSocketTransport implements Transport {
 
     _channel = await platform.connect(Uri.parse(url), client: _client!);
 
-    _logging!(LogLevel.information, 'WebSocket connected to $url.');
+    _logging(LogLevel.information, 'WebSocket connected to $url.');
     opened = true;
 
     _streamSubscription = _channel?.stream.listen((data) {
       var dataDetail = getDataDetail(data, _logMessageContent);
-      _logging!(
+      _logging(
           LogLevel.trace, '(WebSockets transport) data received. $dataDetail');
       if (onreceive != null) {
         try {
@@ -78,7 +79,7 @@ class WebSocketTransport implements Transport {
         }
       }
     }, onError: (e) {
-      _logging!(LogLevel.error,
+      _logging(LogLevel.error,
           '(WebSockets transport) socket error: ${e.toString()}}');
     }, onDone: () {
       if (opened == true) {
@@ -95,8 +96,11 @@ class WebSocketTransport implements Transport {
       return Future.error(Exception('WebSocket is not in the OPEN state'));
     }
 
-    _logging!(LogLevel.trace,
-        '(WebSockets transport) sending data. ${getDataDetail(data, _logMessageContent)}.');
+    _logging!(
+      LogLevel.trace,
+      '(WebSockets transport) sending data. '
+      '${getDataDetail(data, _logMessageContent)}.',
+    );
     _channel!.sink.add(data);
     return Future.value();
   }
@@ -129,7 +133,9 @@ class WebSocketTransport implements Transport {
         if (closeCode != 0 && closeCode != 1000) {
           onclose!(
             Exception(
-                'WebSocket closed with status code: $closeCode ($closeReason).'),
+              'WebSocket closed with status code: '
+              '$closeCode ($closeReason).',
+            ),
           );
         }
         onclose!(null);

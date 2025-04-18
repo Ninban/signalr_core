@@ -3,7 +3,6 @@ import 'dart:typed_data';
 
 import 'package:http/http.dart';
 import 'package:signalr_core/src/logger.dart';
-import 'package:tuple/tuple.dart';
 
 typedef OnReceive = void Function(dynamic data);
 typedef OnClose = void Function(Exception? error);
@@ -62,10 +61,13 @@ Future<void> sendMessage(
   }
 
   final userAgentHeader = getUserAgentHeader();
-  headers[userAgentHeader.item1] = userAgentHeader.item2;
+  headers[userAgentHeader.$1] = userAgentHeader.$2;
 
-  log?.call(LogLevel.trace,
-      '($transportName transport) sending data. ${getDataDetail(content, logMessageContent)}.');
+  log?.call(
+    LogLevel.trace,
+    '($transportName transport) sending data. '
+    '${getDataDetail(content, logMessageContent)}.',
+  );
 
   final encoding = (content is ByteBuffer)
       ? Encoding.getByName('')
@@ -73,16 +75,24 @@ Future<void> sendMessage(
   final response = await client?.post(Uri.parse(url ?? ''),
       headers: headers, body: content, encoding: encoding);
 
-  log?.call(LogLevel.trace,
-      '($transportName transport) request complete. Response status: ${response?.statusCode}.');
+  log?.call(
+    LogLevel.trace,
+    '($transportName transport) request complete. Response status: '
+    '${response?.statusCode}.',
+  );
 }
 
-Tuple2<String, String> getUserAgentHeader() {
+(String, String) getUserAgentHeader() {
   var userAgentHeaderName = 'X-SignalR-User-Agent';
-  return Tuple2<String, String>(
-      userAgentHeaderName,
-      _constructUserAgent(
-          version, getOsName(), getRuntime(), getRuntimeVersion()));
+  return (
+    userAgentHeaderName,
+    _constructUserAgent(
+      version,
+      getOsName(),
+      getRuntime(),
+      getRuntimeVersion(),
+    )
+  );
 }
 
 String _constructUserAgent(
@@ -91,7 +101,8 @@ String _constructUserAgent(
   String runtime,
   String runtimeVersion,
 ) {
-  // Microsoft SignalR/[Version] ([Detailed Version]; [Operating System]; [Runtime]; [Runtime Version])
+  // Microsoft SignalR/[Version] ([Detailed Version]; [Operating System];
+  //[Runtime]; [Runtime Version])
   var userAgent = 'Microsoft SignalR/';
 
   final majorAndMinor = version.split('.');
